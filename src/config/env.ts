@@ -11,6 +11,7 @@ const envSchema = z.object({
   MONGO_URI: z.string().url(),
   JWT_SECRET: z.string().min(10),
   CLIENT_ORIGIN: z.string().optional().default("*"),
+  GOOGLE_APPLICATION_CREDENTIALS: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -29,4 +30,5 @@ export const config = {
   mongoUri: parsedEnv.data.MONGO_URI,
   jwtSecret: parsedEnv.data.JWT_SECRET,
   clientOrigin: parsedEnv.data.CLIENT_ORIGIN,
+  googleAppCreds: parsedEnv.data.GOOGLE_APPLICATION_CREDENTIALS,
 };
