@@ -10,6 +10,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   MONGO_URI: z.string().url(),
   JWT_SECRET: z.string().min(10),
+  CLIENT_ORIGIN: z.string().optional().default("*"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -27,4 +28,5 @@ export const config = {
   port: parsedEnv.data.PORT,
   mongoUri: parsedEnv.data.MONGO_URI,
   jwtSecret: parsedEnv.data.JWT_SECRET,
+  clientOrigin: parsedEnv.data.CLIENT_ORIGIN,
 };

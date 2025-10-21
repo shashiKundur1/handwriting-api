@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { ApiResponse } from "../utils/apiResponse";
 import { config } from "../config/env";
 
-export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error("💥 ERROR:", err);
 
   if (err instanceof mongoose.Error.ValidationError) {
