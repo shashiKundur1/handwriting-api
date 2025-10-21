@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", // Modern JavaScript, supported by Node.js 18+
+    "module": "NodeNext", // Native ES modules for Node.js; use "CommonJS" if you want legacy style
+    "rootDir": "./src", // Source TypeScript files (keep all TS here)
+    "outDir": "./dist", // Compiled JS will be output here
+    "esModuleInterop": true, // Allow import compatibility between CommonJS and ESM
+    "strict": true, // Enable all strict type checking options
+
+    // Additional stability and DX options
+    "moduleResolution": "NodeNext",
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
