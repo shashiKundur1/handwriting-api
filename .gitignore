@@ -1,0 +1,177 @@
+# ==================================
+# Dependencies
+# ==================================
+node_modules/
+jspm_packages/
+bower_components/
+
+# ==================================
+# TypeScript Build Outputs
+# ==================================
+dist/
+build/
+out/
+*.tsbuildinfo
+*.js.map
+
+# Compiled files (if you want to ignore all .js files in src, uncomment below)
+# src/**/*.js
+
+# ==================================
+# Environment Variables & Secrets
+# ==================================
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Keep example env file for documentation
+!.env.example
+
+# ==================================
+# Logs
+# ==================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ==================================
+# Testing & Coverage
+# ==================================
+coverage/
+.nyc_output/
+*.lcov
+.jest-cache/
+
+# ==================================
+# Package Manager Files
+# ==================================
+.npm
+.yarn-integrity
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Optional: Uncomment if you want to ignore lock files (NOT recommended for production)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ==================================
+# MongoDB & Database Files
+# ==================================
+data/
+*.db
+*.sqlite
+*.sqlite3
+mongodb/
+db-data/
+
+# ==================================
+# Caching & Temporary Files
+# ==================================
+.cache/
+.parcel-cache/
+.temp/
+.tmp/
+*.tmp
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# ==================================
+# Operating System Files
+# ==================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ==================================
+# IDE & Editor Files
+# ==================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs (IntelliJ IDEA, WebStorm, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ==================================
+# Build Tools & Bundlers
+# ==================================
+.webpack/
+.next/
+.nuxt/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+
+# ==================================
+# Runtime & Process Files
+# ==================================
+.node_repl_history
+lib-cov
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ==================================
+# Miscellaneous
+# ==================================
+.tern-port
+.eslintcache
+.stylelintcache
+.grunt
+.lock-wscript
+*.tgz
