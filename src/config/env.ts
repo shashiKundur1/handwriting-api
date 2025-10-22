@@ -12,6 +12,9 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(10),
   CLIENT_ORIGIN: z.string().optional().default("*"),
   GOOGLE_APPLICATION_CREDENTIALS: z.string().min(1),
+  CLOUDINARY_URL: z.string().url(),
+  GOOGLE_CLOUD_PROJECT: z.string().min(1),
+  REDIS_URL: z.string().url(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -31,4 +34,7 @@ export const config = {
   jwtSecret: parsedEnv.data.JWT_SECRET,
   clientOrigin: parsedEnv.data.CLIENT_ORIGIN,
   googleAppCreds: parsedEnv.data.GOOGLE_APPLICATION_CREDENTIALS,
+  cloudinaryUrl: parsedEnv.data.CLOUDINARY_URL,
+  googleCloudProject: parsedEnv.data.GOOGLE_CLOUD_PROJECT,
+  redisUrl: parsedEnv.data.REDIS_URL,
 };

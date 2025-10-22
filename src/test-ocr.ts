@@ -6,7 +6,7 @@ async function runOcrTest() {
   console.log("Starting Google Cloud Vision OCR test...");
   const imagePath = path.resolve(
     __dirname,
-    "../test-assets/sample-image-2.png"
+    "../test-assets/sample-image-6.png"
   );
 
   try {

@@ -1,6 +1,7 @@
 import app from "./app";
 import { connectDB } from "./config/database";
 import { config } from "./config/env";
+import "./workers/digitizationWorker";
 
 async function startServer() {
   try {
