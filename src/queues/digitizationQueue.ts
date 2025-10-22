@@ -1,22 +1,8 @@
 import { Queue } from "bullmq";
-import IORedis from "ioredis";
-import { config } from "../config/env";
-
-const connection = new IORedis(config.redisUrl, {
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-});
-
-connection.on("connect", () => {
-  console.log("✅ Connected to Redis");
-});
-
-connection.on("error", (err) => {
-  console.error("❌ Redis connection error:", err);
-});
+import redisConnection from "../config/redis";
 
 export const digitizationQueue = new Queue("digitization", {
-  connection,
+  connection: redisConnection,
   defaultJobOptions: {
     attempts: 3,
     backoff: {

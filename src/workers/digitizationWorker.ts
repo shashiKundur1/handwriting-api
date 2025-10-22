@@ -1,6 +1,5 @@
 import { Worker, Job } from "bullmq";
-import IORedis from "ioredis";
-import { config } from "../config/env";
+import redisConnection from "../config/redis";
 import { Digitization } from "../features/digitizer/digitization.model";
 import { recognizeTextFromImage } from "../features/digitizer/ocr.service";
 import { translateText } from "../features/digitizer/translation.service";
@@ -10,11 +9,6 @@ interface DigitizationJobData {
   targetLanguage: string;
   digitizationId: string;
 }
-
-const connection = new IORedis(config.redisUrl, {
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-});
 
 export const digitizationWorker = new Worker<DigitizationJobData>(
   "digitization",
@@ -57,7 +51,7 @@ export const digitizationWorker = new Worker<DigitizationJobData>(
     }
   },
   {
-    connection,
+    connection: redisConnection,
     concurrency: 1,
     autorun: true,
   }

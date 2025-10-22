@@ -20,7 +20,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
     const message = `Duplicate value entered for '${field}' field, please choose another value`;
-    return ApiResponse.error(res, message, null, 409); // 409 Conflict
+    return ApiResponse.error(res, message, null, 409);
   }
 
   const statusCode = err.statusCode || 500;
