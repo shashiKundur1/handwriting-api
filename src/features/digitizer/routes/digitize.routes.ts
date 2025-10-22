@@ -1,105 +1,104 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
-import mongoose from "mongoose"; // Import mongoose to validate ObjectId
+import mongoose from "mongoose";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { downloadFileAsBuffer } from "../../../utils/download.util";
 import { uploadImageBufferToCloudinary } from "../storage.service";
 import { Digitization } from "../digitization.model";
 import { digitizationQueue } from "../../../queues/digitizationQueue";
-import { ApiResponse } from "../../../utils/apiResponse"; // Import ApiResponse
+import { ApiResponse } from "../../../utils/apiResponse";
+import { digitizeUrlSchema } from "../../../schemas/digitizeUrl.schema";
+import { digitizeUploadSchema } from "../../../schemas/digitizeUpload.schema";
 
 const router = Router();
 
-// Configure Multer for in-memory storage
 const memoryStorage = multer.memoryStorage();
 const upload = multer({ storage: memoryStorage });
 
 // --- Route for Uploading by URL ---
-interface DigitizeByUrlBody {
-  imageUrl: string;
-  targetLanguage: string;
-}
-
 router.post(
   "/url",
-  asyncHandler(
-    async (req: Request<{}, {}, DigitizeByUrlBody>, res: Response) => {
-      const { imageUrl, targetLanguage } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+    const { imageUrl, targetLanguage, sourceLanguage } =
+      digitizeUrlSchema.shape.body.parse(req.body);
 
-      const imageBuffer = await downloadFileAsBuffer(imageUrl);
-      const cloudinaryUrl = await uploadImageBufferToCloudinary(
-        imageBuffer,
-        "url-uploads"
-      );
+    const imageBuffer = await downloadFileAsBuffer(imageUrl);
+    const cloudinaryUrl = await uploadImageBufferToCloudinary(
+      imageBuffer,
+      "url-uploads"
+    );
 
-      const digitizationDoc = await Digitization.create({
-        imageUrl: cloudinaryUrl,
-        targetLanguage,
-        status: "pending",
-      });
+    const digitizationDoc = await Digitization.create({
+      imageUrl: cloudinaryUrl,
+      targetLanguage,
+      sourceLanguage,
+      status: "pending",
+    });
 
-      const digitizationId = String(digitizationDoc._id);
+    const digitizationId = String(digitizationDoc._id);
 
-      await digitizationQueue.add("process-digitization", {
-        imageUrl: cloudinaryUrl,
-        targetLanguage,
-        digitizationId,
-      });
+    await digitizationQueue.add("process-digitization", {
+      imageUrl: cloudinaryUrl,
+      targetLanguage,
+      digitizationId,
+      sourceLanguage,
+    });
 
-      ApiResponse.success(
-        res,
-        { digitizationId },
-        "Digitization job queued successfully.",
-        202
-      );
-    }
-  )
+    ApiResponse.success(
+      res,
+      { digitizationId },
+      "Digitization job queued successfully.",
+      202
+    );
+  })
 );
 
 // --- Route for Direct File Upload ---
-interface DigitizeByUploadBody {
-  targetLanguage: string;
-}
 
 router.post(
   "/upload",
-  upload.single("image"), // Multer middleware for a single file in a field named 'image'
-  asyncHandler(
-    async (req: Request<{}, {}, DigitizeByUploadBody>, res: Response) => {
-      if (!req.file) {
-        return ApiResponse.error(res, "No image file uploaded.", null, 400);
-      }
-
-      const { targetLanguage } = req.body;
-      const imageBuffer = req.file.buffer;
-
-      const cloudinaryUrl = await uploadImageBufferToCloudinary(
-        imageBuffer,
-        "direct-uploads"
-      );
-
-      const digitizationDoc = await Digitization.create({
-        imageUrl: cloudinaryUrl,
-        targetLanguage,
-        status: "pending",
-      });
-
-      const digitizationId = String(digitizationDoc._id);
-
-      await digitizationQueue.add("process-digitization", {
-        imageUrl: cloudinaryUrl,
-        targetLanguage,
-        digitizationId,
-      });
-
-      ApiResponse.success(
-        res,
-        { digitizationId },
-        "Digitization job queued successfully.",
-        202
-      );
+  upload.single("image"),
+  asyncHandler(async (req: Request, res: Response) => {
+    // 1. Validate the file first
+    if (!req.file) {
+      return ApiResponse.error(res, "No image file uploaded.", null, 400);
     }
-  )
+    digitizeUploadSchema.shape.file.parse(req.file);
+
+    // 2. Validate the request body
+    const { targetLanguage, sourceLanguage } =
+      digitizeUploadSchema.shape.body.parse(req.body);
+
+    // 3. Proceed with validated data
+    const imageBuffer = req.file.buffer;
+    const cloudinaryUrl = await uploadImageBufferToCloudinary(
+      imageBuffer,
+      "direct-uploads"
+    );
+
+    const digitizationDoc = await Digitization.create({
+      imageUrl: cloudinaryUrl,
+      targetLanguage,
+      sourceLanguage,
+      status: "pending",
+    });
+
+    const digitizationId = String(digitizationDoc._id);
+
+    await digitizationQueue.add("process-digitization", {
+      imageUrl: cloudinaryUrl,
+      targetLanguage,
+      digitizationId,
+      sourceLanguage,
+    });
+
+    ApiResponse.success(
+      res,
+      { digitizationId },
+      "Digitization job queued successfully.",
+      202
+    );
+  })
 );
 
 // --- NEW Route to Get Results by ID ---

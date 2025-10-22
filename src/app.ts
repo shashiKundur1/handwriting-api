@@ -9,7 +9,16 @@ import { errorHandler } from "./middleware/errorHandler";
 const app: Application = express();
 
 // Security middleware - should be applied early
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    frameguard: { action: "deny" },
+    hsts:
+      config.nodeEnv === "production"
+        ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+        : false,
+  })
+);
 
 // CORS configuration
 app.use(

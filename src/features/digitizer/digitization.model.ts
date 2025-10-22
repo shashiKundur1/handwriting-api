@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IDigitization extends Document {
   status: "pending" | "processing" | "completed" | "failed";
   imageUrl: string;
-  originalLanguage: string | null;
+  sourceLanguage: string[]; // <-- Changed
   recognizedText: string | null;
   translatedText: string | null;
   targetLanguage: string | null;
@@ -24,10 +24,9 @@ const digitizationSchema: Schema = new mongoose.Schema(
       required: [true, "Image URL is required"],
       trim: true,
     },
-    originalLanguage: {
-      type: String,
-      trim: true,
-      default: null,
+    sourceLanguage: {
+      type: [String], // <-- Changed to array of strings
+      default: [],
     },
     recognizedText: {
       type: String,

@@ -1,5 +1,6 @@
 import IORedis from "ioredis";
 import { config } from "./env";
+import logger from "../utils/logger";
 
 const redisConnection = new IORedis(config.redisUrl, {
   maxRetriesPerRequest: null,
@@ -7,11 +8,11 @@ const redisConnection = new IORedis(config.redisUrl, {
 });
 
 redisConnection.on("connect", () => {
-  console.log("✅ Connected to Redis");
+  logger.info("✅ Connected to Redis");
 });
 
 redisConnection.on("error", (err) => {
-  console.error("❌ Redis connection error:", err);
+  logger.error("❌ Redis connection error:", { error: err.message });
 });
 
 export default redisConnection;

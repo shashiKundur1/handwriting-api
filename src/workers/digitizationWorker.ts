@@ -3,20 +3,25 @@ import redisConnection from "../config/redis";
 import { Digitization } from "../features/digitizer/digitization.model";
 import { recognizeTextFromImage } from "../features/digitizer/ocr.service";
 import { translateText } from "../features/digitizer/translation.service";
+import logger from "../utils/logger";
 
 interface DigitizationJobData {
   imageUrl: string;
   targetLanguage: string;
   digitizationId: string;
+  sourceLanguage?: string[];
 }
 
 export const digitizationWorker = new Worker<DigitizationJobData>(
   "digitization",
   async (job: Job<DigitizationJobData>) => {
-    const { digitizationId, imageUrl, targetLanguage } = job.data;
-    console.log(
-      `⚙️ Processing job ${job.id} for digitization ${digitizationId}`
-    );
+    const { digitizationId, imageUrl, targetLanguage, sourceLanguage } =
+      job.data;
+
+    logger.info(`Processing job for digitization`, {
+      jobId: job.id,
+      digitizationId,
+    });
 
     try {
       await job.updateProgress(5);
@@ -25,7 +30,10 @@ export const digitizationWorker = new Worker<DigitizationJobData>(
       });
 
       await job.updateProgress(25);
-      const recognizedText = await recognizeTextFromImage(imageUrl);
+      const recognizedText = await recognizeTextFromImage(
+        imageUrl,
+        sourceLanguage
+      );
 
       await job.updateProgress(75);
       const translatedText = await translateText(
@@ -43,11 +51,16 @@ export const digitizationWorker = new Worker<DigitizationJobData>(
 
       return { success: true, digitizationId };
     } catch (error) {
-      console.error(`Job ${job.id} failed:`, error);
+      const err = error as Error;
+      logger.error(`Job failed`, {
+        jobId: job.id,
+        digitizationId,
+        error: err.message,
+      });
       await Digitization.findByIdAndUpdate(digitizationId, {
         status: "failed",
       });
-      throw error;
+      throw err;
     }
   },
   {
@@ -58,22 +71,23 @@ export const digitizationWorker = new Worker<DigitizationJobData>(
 );
 
 digitizationWorker.on("completed", (job, result) => {
-  console.log(`✅ Job ${job.id} completed successfully:`, result);
+  logger.info(`Job completed successfully`, { jobId: job.id, result });
 });
 
 digitizationWorker.on("failed", (job, err) => {
   if (job) {
-    console.error(
-      `❌ Job ${job.id} failed after ${job.attemptsMade} attempts:`,
-      err.message
-    );
+    logger.error(`Job failed after all attempts`, {
+      jobId: job.id,
+      attemptsMade: job.attemptsMade,
+      error: err.message,
+    });
   }
 });
 
 digitizationWorker.on("active", (job) => {
-  console.log(`⚙️ Job ${job.id} is now active`);
+  logger.info(`Job is now active`, { jobId: job.id });
 });
 
 digitizationWorker.on("progress", (job, progress) => {
-  console.log(`📊 Job ${job.id} progress: ${progress}%`);
+  logger.info(`Job progress`, { jobId: job.id, progress: `${progress}%` });
 });
