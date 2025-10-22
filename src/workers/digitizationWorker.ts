@@ -1,8 +1,10 @@
 import { Worker, Job } from "bullmq";
 import IORedis from "ioredis";
 import { config } from "../config/env";
+import { Digitization } from "../features/digitizer/digitization.model";
+import { recognizeTextFromImage } from "../features/digitizer/ocr.service";
+import { translateText } from "../features/digitizer/translation.service";
 
-// Define job data interface
 interface DigitizationJobData {
   imageUrl: string;
   targetLanguage: string;
@@ -17,40 +19,46 @@ const connection = new IORedis(config.redisUrl, {
 export const digitizationWorker = new Worker<DigitizationJobData>(
   "digitization",
   async (job: Job<DigitizationJobData>) => {
+    const { digitizationId, imageUrl, targetLanguage } = job.data;
     console.log(
-      `⚙️ Processing job ${job.id} for digitization ${job.data.digitizationId}`
+      `⚙️ Processing job ${job.id} for digitization ${digitizationId}`
     );
 
-    await job.updateProgress(10);
-    console.log(`Job ${job.id}: Calling OCR for ${job.data.imageUrl}`);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const recognizedText = "Simulated Recognized Text";
+    try {
+      await job.updateProgress(5);
+      await Digitization.findByIdAndUpdate(digitizationId, {
+        status: "processing",
+      });
 
-    await job.updateProgress(50);
-    console.log(
-      `Job ${job.id}: Translating text to ${job.data.targetLanguage}`
-    );
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const translatedText = "Simulated Translated Text";
+      await job.updateProgress(25);
+      const recognizedText = await recognizeTextFromImage(imageUrl);
 
-    await job.updateProgress(90);
-    console.log(
-      `Job ${job.id}: Updating database for ${job.data.digitizationId}`
-    );
-    await new Promise((resolve) => setTimeout(resolve, 500));
+      await job.updateProgress(75);
+      const translatedText = await translateText(
+        recognizedText,
+        targetLanguage
+      );
 
-    await job.updateProgress(100);
+      await job.updateProgress(95);
+      await Digitization.findByIdAndUpdate(digitizationId, {
+        status: "completed",
+        recognizedText,
+        translatedText,
+      });
+      await job.updateProgress(100);
 
-    return {
-      success: true,
-      digitizationId: job.data.digitizationId,
-      recognizedText,
-      translatedText,
-    };
+      return { success: true, digitizationId };
+    } catch (error) {
+      console.error(`Job ${job.id} failed:`, error);
+      await Digitization.findByIdAndUpdate(digitizationId, {
+        status: "failed",
+      });
+      throw error;
+    }
   },
   {
     connection,
-    concurrency: 1, // Start with 1 to easily see logs
+    concurrency: 1,
     autorun: true,
   }
 );

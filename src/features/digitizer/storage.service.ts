@@ -1,24 +1,32 @@
 import { v2 as cloudinary } from "cloudinary";
+import { Readable } from "stream";
 
 cloudinary.config({
   secure: true,
 });
 
-export const uploadImageToCloudinary = async (
-  imagePath: string,
+export const uploadImageBufferToCloudinary = async (
+  imageBuffer: Buffer,
   folder: string
 ): Promise<string> => {
-  try {
-    const result = await cloudinary.uploader.upload(imagePath, {
-      folder: `digitizer-app/${folder}`,
-      use_filename: true,
-      unique_filename: false,
-      overwrite: false,
-    });
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: `digitizer-app/${folder}`,
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary Upload Error:", error);
+          return reject(new Error("Failed to upload image to Cloudinary."));
+        }
+        if (!result) {
+          return reject(new Error("Cloudinary upload result is undefined."));
+        }
+        resolve(result.secure_url);
+      }
+    );
 
-    return result.secure_url;
-  } catch (error) {
-    console.error("Cloudinary Upload Error:", error);
-    throw new Error("Failed to upload image to Cloudinary.");
-  }
+    Readable.from(imageBuffer).pipe(uploadStream);
+  });
 };
