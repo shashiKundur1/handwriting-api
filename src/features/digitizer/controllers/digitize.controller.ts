@@ -7,6 +7,7 @@ import { digitizationQueue } from "../../../queues/digitizationQueue";
 import { ApiResponse } from "../../../utils/apiResponse";
 import { digitizeUrlSchema } from "../../../schemas/digitizeUrl.schema";
 import { digitizeUploadSchema } from "../../../schemas/digitizeUpload.schema";
+import { ApiError, NotFoundError } from "../../../utils/ApiError";
 
 class DigitizeController {
   async digitizeByUrl(req: Request, res: Response): Promise<void> {
@@ -87,15 +88,13 @@ class DigitizeController {
     const { digitizationId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(digitizationId)) {
-      ApiResponse.error(res, "Invalid digitization ID format.", null, 400);
-      return;
+      throw new ApiError(400, "Invalid digitization ID format.");
     }
 
     const digitization = await Digitization.findById(digitizationId);
 
     if (!digitization) {
-      ApiResponse.error(res, "Digitization job not found.", null, 404);
-      return;
+      throw new NotFoundError("Digitization job", digitizationId);
     }
 
     ApiResponse.success(

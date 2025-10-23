@@ -4,6 +4,7 @@ import { Digitization } from "../features/digitizer/digitization.model";
 import { recognizeTextFromImage } from "../features/digitizer/ocr.service";
 import { translateText } from "../features/digitizer/translation.service";
 import logger from "../utils/logger";
+import { deadLetterQueue } from "../queues/deadLetterQueue";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -99,13 +100,32 @@ digitizationWorker.on("completed", (job, result) => {
   logger.info(`Job completed successfully`, { jobId: job.id, result });
 });
 
-digitizationWorker.on("failed", (job, err) => {
+digitizationWorker.on("failed", async (job, err) => {
   if (job) {
-    logger.error(`Job failed after all attempts`, {
+    const attemptsMade = job.attemptsMade;
+    const maxAttempts = job.opts.attempts || 1;
+
+    logger.error(`Job failed`, {
       jobId: job.id,
-      attemptsMade: job.attemptsMade,
+      attempts: `${attemptsMade}/${maxAttempts}`,
       error: err.message,
     });
+
+    if (attemptsMade >= maxAttempts) {
+      logger.warn(`Job has failed all retries. Moving to DLQ.`, {
+        jobId: job.id,
+      });
+      await deadLetterQueue.add("failed-digitization-job", {
+        originalJob: {
+          id: job.id,
+          data: job.data,
+          failedReason: err.message,
+          stacktrace: err.stack,
+          attemptsMade: job.attemptsMade,
+        },
+        failedAt: new Date().toISOString(),
+      });
+    }
   }
 });
 

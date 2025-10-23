@@ -1,13 +1,19 @@
 {
   "name": "project-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A robust backend API service that extracts handwritten text from images.",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon --config nodemon.json",
+    "dev": "nodemon -e ts --exec \"ts-node src/server.ts\"",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "jest"
+    "test": "jest",
+    "docker:up": "docker-compose up -d",
+    "docker:up:build": "docker-compose up --build -d",
+    "docker:down": "docker-compose down",
+    "docker:down:clean": "docker-compose down -v",
+    "docker:logs": "docker-compose logs -f api",
+    "docker:ps": "docker-compose ps"
   },
   "author": "",
   "license": "ISC",

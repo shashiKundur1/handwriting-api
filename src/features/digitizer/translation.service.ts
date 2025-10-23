@@ -1,6 +1,7 @@
 import { TranslationServiceClient } from "@google-cloud/translate";
 import { config } from "../../config/env";
 import logger from "../../utils/logger";
+import { ExternalServiceError } from "../../utils/ApiError";
 
 const client = new TranslationServiceClient();
 
@@ -34,6 +35,6 @@ export const translateText = async (
   } catch (error) {
     const err = error as Error;
     logger.error("Google Translate API Error", { error: err.message });
-    throw new Error("Failed to translate text using Google Translate API.");
+    throw new ExternalServiceError("Google Translate", err.message);
   }
 };

@@ -1,5 +1,6 @@
 import vision from "@google-cloud/vision";
 import logger from "../../utils/logger";
+import { ExternalServiceError } from "../../utils/ApiError";
 
 const client = new vision.ImageAnnotatorClient();
 
@@ -26,6 +27,6 @@ export const recognizeTextFromImage = async (
       error: err.message,
       imageUrl,
     });
-    throw new Error("Failed to recognize text using Google Cloud Vision API.");
+    throw new ExternalServiceError("Google Vision", err.message);
   }
 };

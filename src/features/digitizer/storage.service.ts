@@ -1,5 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { Readable } from "stream";
+import { ExternalServiceError } from "../../utils/ApiError";
+import logger from "../../utils/logger";
 
 cloudinary.config({
   secure: true,
@@ -17,11 +19,18 @@ export const uploadImageBufferToCloudinary = async (
       },
       (error, result) => {
         if (error) {
-          console.error("Cloudinary Upload Error:", error);
-          return reject(new Error("Failed to upload image to Cloudinary."));
+          logger.error("Cloudinary Upload Error", { error: error.message });
+          return reject(
+            new ExternalServiceError("Cloudinary", "Failed to upload image.")
+          );
         }
         if (!result) {
-          return reject(new Error("Cloudinary upload result is undefined."));
+          return reject(
+            new ExternalServiceError(
+              "Cloudinary",
+              "Upload result is undefined."
+            )
+          );
         }
         resolve(result.secure_url);
       }
