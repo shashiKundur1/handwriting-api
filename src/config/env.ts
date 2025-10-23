@@ -1,7 +1,23 @@
 import dotenv from "dotenv";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
+
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.GCP_CREDENTIALS_BASE64
+) {
+  const decodedKey = Buffer.from(
+    process.env.GCP_CREDENTIALS_BASE64,
+    "base64"
+  ).toString("utf-8");
+  const keyFilePath = path.join(__dirname, "gcp-key.json");
+  fs.writeFileSync(keyFilePath, decodedKey);
+
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = keyFilePath;
+}
 
 const envSchema = z.object({
   NODE_ENV: z

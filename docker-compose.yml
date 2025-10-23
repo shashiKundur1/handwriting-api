@@ -1,5 +1,4 @@
 services:
-  # ---------------- API Service (Node.js App) ----------------
   api:
     build:
       context: .
@@ -8,55 +7,12 @@ services:
     container_name: digitizer-api
     ports:
       - "${PORT:-3000}:3000"
-    environment:
-      - NODE_ENV=development
-      - MONGO_URI=mongodb://mongodb:27017/handwriting-digitizer
-      - REDIS_URL=redis://redis:6379
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/handwriting-digitizer-v2-98c01506bdae.json
-      - CLOUDINARY_URL=${CLOUDINARY_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+    # This command reads your local .env file and passes the variables to the container
+    env_file:
+      - .env
     volumes:
       # Mount source code for hot-reloading
       - ./src:/app/src
       # Mount Google Cloud credentials securely
       - ./handwriting-digitizer-v2-98c01506bdae.json:/app/handwriting-digitizer-v2-98c01506bdae.json:ro
     command: npm run dev
-    depends_on:
-      - mongodb
-      - redis
-    networks:
-      - digitizer-network
-
-  # ---------------- MongoDB Service ----------------
-  mongodb:
-    image: mongo:6-jammy
-    container_name: digitizer-mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - digitizer-network
-
-  # ---------------- Redis Service ----------------
-  redis:
-    image: redis:7-alpine
-    container_name: digitizer-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - digitizer-network
-
-# ---------------- Volumes & Networks ----------------
-volumes:
-  mongo-data:
-    driver: local
-  redis-data:
-    driver: local
-
-networks:
-  digitizer-network:
-    driver: bridge
