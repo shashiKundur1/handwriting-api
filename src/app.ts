@@ -5,10 +5,10 @@ import morgan from "morgan";
 import { config } from "./config/env";
 import mainRouter from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
+import { apiLimiter } from "./middleware/rateLimiter";
 
 const app: Application = express();
 
-// Security middleware - should be applied early
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -48,7 +48,7 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 // Main API routes
-app.use("/api/v1", mainRouter);
+app.use("/api/v1", apiLimiter, mainRouter);
 
 // 404 Not Found handler
 app.use((req: Request, res: Response) => {
@@ -58,7 +58,6 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Global error handler (must be the last middleware)
 app.use(errorHandler);
 
 export default app;

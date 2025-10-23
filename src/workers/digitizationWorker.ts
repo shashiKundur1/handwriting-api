@@ -5,9 +5,16 @@ import { recognizeTextFromImage } from "../features/digitizer/ocr.service";
 import { translateText } from "../features/digitizer/translation.service";
 import logger from "../utils/logger";
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
 interface DigitizationJobData {
   imageUrl: string;
-  targetLanguage: string;
+  targetLanguage?: string;
   digitizationId: string;
   sourceLanguage?: string[];
 }
@@ -35,32 +42,50 @@ export const digitizationWorker = new Worker<DigitizationJobData>(
         sourceLanguage
       );
 
-      await job.updateProgress(75);
-      const translatedText = await translateText(
-        recognizedText,
-        targetLanguage
-      );
+      if (targetLanguage) {
+        logger.info("Translating text", { jobId: job.id, targetLanguage });
+        await job.updateProgress(75);
+        const { translatedText, detectedLanguageCode } = await translateText(
+          recognizedText,
+          targetLanguage
+        );
 
-      await job.updateProgress(95);
-      await Digitization.findByIdAndUpdate(digitizationId, {
-        status: "completed",
-        recognizedText,
-        translatedText,
-      });
+        await job.updateProgress(95);
+        await Digitization.findByIdAndUpdate(digitizationId, {
+          status: "completed",
+          recognizedText,
+          translatedText,
+          detectedLanguage: detectedLanguageCode,
+        });
+      } else {
+        logger.info("Skipping translation step", { jobId: job.id });
+        await job.updateProgress(95);
+        await Digitization.findByIdAndUpdate(digitizationId, {
+          status: "completed",
+          recognizedText,
+        });
+      }
       await job.updateProgress(100);
 
-      return { success: true, digitizationId };
-    } catch (error) {
-      const err = error as Error;
+      return {
+        success: true,
+        digitizationId,
+        translationSkipped: !targetLanguage,
+      };
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       logger.error(`Job failed`, {
         jobId: job.id,
         digitizationId,
-        error: err.message,
+        error: errorMessage,
       });
+
       await Digitization.findByIdAndUpdate(digitizationId, {
         status: "failed",
+        failureReason: errorMessage,
       });
-      throw err;
+
+      throw error;
     }
   },
   {

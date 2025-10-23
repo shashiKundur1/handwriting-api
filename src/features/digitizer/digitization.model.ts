@@ -3,10 +3,12 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IDigitization extends Document {
   status: "pending" | "processing" | "completed" | "failed";
   imageUrl: string;
-  sourceLanguage: string[]; // <-- Changed
+  sourceLanguage: string[];
+  detectedLanguage: string | null; // <-- Added
   recognizedText: string | null;
-  translatedText: string | null;
-  targetLanguage: string | null;
+  translatedText?: string | null;
+  targetLanguage?: string | null;
+  failureReason?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +20,7 @@ const digitizationSchema: Schema = new mongoose.Schema(
       enum: ["pending", "processing", "completed", "failed"],
       default: "pending",
       required: [true, "Status is required"],
+      index: true,
     },
     imageUrl: {
       type: String,
@@ -25,8 +28,12 @@ const digitizationSchema: Schema = new mongoose.Schema(
       trim: true,
     },
     sourceLanguage: {
-      type: [String], // <-- Changed to array of strings
+      type: [String],
       default: [],
+    },
+    detectedLanguage: {
+      type: String,
+      default: null,
     },
     recognizedText: {
       type: String,
@@ -41,13 +48,16 @@ const digitizationSchema: Schema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    failureReason: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Create and export the Mongoose model
 export const Digitization = mongoose.model<IDigitization>(
   "Digitization",
   digitizationSchema

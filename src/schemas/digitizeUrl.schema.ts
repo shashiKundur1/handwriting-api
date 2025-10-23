@@ -5,7 +5,8 @@ export const digitizeUrlSchema = z.object({
     imageUrl: z.string().url({ message: "A valid image URL is required" }),
     targetLanguage: z
       .string()
-      .min(2, { message: "Target language must be at least 2 characters" }),
+      .min(2, { message: "Target language must be at least 2 characters" })
+      .optional(),
     sourceLanguage: z.array(z.string()).optional(),
   }),
 });

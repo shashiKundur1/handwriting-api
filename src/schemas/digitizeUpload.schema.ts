@@ -12,7 +12,8 @@ export const digitizeUploadSchema = z.object({
   body: z.object({
     targetLanguage: z
       .string()
-      .min(2, { message: "Target language must be at least 2 characters" }),
+      .min(2, { message: "Target language must be at least 2 characters" })
+      .optional(),
     sourceLanguage: z.preprocess((val) => {
       if (typeof val === "string") {
         return val

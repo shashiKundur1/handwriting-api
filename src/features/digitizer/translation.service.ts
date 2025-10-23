@@ -1,12 +1,18 @@
 import { TranslationServiceClient } from "@google-cloud/translate";
 import { config } from "../../config/env";
+import logger from "../../utils/logger";
 
 const client = new TranslationServiceClient();
+
+interface TranslationResult {
+  translatedText: string;
+  detectedLanguageCode: string | null;
+}
 
 export const translateText = async (
   text: string,
   targetLanguage: string
-): Promise<string> => {
+): Promise<TranslationResult> => {
   const request = {
     parent: `projects/${config.googleCloudProject}/locations/global`,
     contents: [text],
@@ -16,15 +22,18 @@ export const translateText = async (
 
   try {
     const [response] = await client.translateText(request);
-    const translation = response.translations?.[0]?.translatedText;
+    const firstResult = response.translations?.[0];
+    const translatedText = firstResult?.translatedText;
+    const detectedLanguageCode = firstResult?.detectedLanguageCode || null;
 
-    if (!translation) {
+    if (!translatedText) {
       throw new Error("Received an empty translation result.");
     }
 
-    return translation;
+    return { translatedText, detectedLanguageCode };
   } catch (error) {
-    console.error("Google Translate API Error:", error);
+    const err = error as Error;
+    logger.error("Google Translate API Error", { error: err.message });
     throw new Error("Failed to translate text using Google Translate API.");
   }
 };
