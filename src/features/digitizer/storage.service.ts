@@ -37,6 +37,13 @@ export const uploadImageBufferToCloudinary = async (
       }
     );
 
-    Readable.from(imageBuffer).pipe(uploadStream);
+    const readableStream = Readable.from(imageBuffer);
+
+    readableStream.on("error", (error) => {
+      logger.error("Readable stream error", { error });
+      reject(error);
+    });
+
+    readableStream.pipe(uploadStream);
   });
 };

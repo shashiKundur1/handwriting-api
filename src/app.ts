@@ -11,6 +11,8 @@ import redisConnection from "./config/redis";
 
 const app: Application = express();
 
+app.set("trust proxy", 1);
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
