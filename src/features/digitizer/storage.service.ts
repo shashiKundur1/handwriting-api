@@ -16,10 +16,11 @@ export const uploadImageBufferToCloudinary = async (
       {
         folder: `digitizer-app/${folder}`,
         resource_type: "image",
+        timeout: 120000,
       },
       (error, result) => {
         if (error) {
-          logger.error("Cloudinary Upload Error", { error: error.message });
+          logger.error("Cloudinary Upload Error", { error });
           return reject(
             new ExternalServiceError("Cloudinary", "Failed to upload image.")
           );
