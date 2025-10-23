@@ -13,10 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Heroku CLI
-        uses: heroku/actions/setup@v1
-        with:
-          heroku_api_key: ${{ secrets.HEROKO_API_KEY }}
+      - name: Install Heroku CLI
+        run: npm install -g heroku
 
       - name: Log in to Heroku Container Registry
         run: heroku container:login
